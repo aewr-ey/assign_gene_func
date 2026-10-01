@@ -27,33 +27,24 @@ def global_alignment(seq1, seq2, scoring_function):
 
     Other alignments are not possible.
 
-    
     """
     rows = (len(seq2)+1)
     cols = (len(seq1)+1)
   
-
     gap_pen = 1
     
-    """
-    make empty 0 grid 
-    """
+    # make empty grid + fill first row and col with gap pen
 
     grid = [[0 for _ in range(cols)] for _ in range(rows)]
 
-    """
-    gap penalty for 1st row and col
-    """
     for i in range(1,rows):
         grid[i][0] = grid[i-1][0] - gap_pen
         
     for i in range(1,cols):
         grid[0][i] = grid[0][i-1] - gap_pen
 
-    """
-    fill in grid
-    """
 
+    # calculate diagonal, vertical, horizonal scores - take largest - fill entire grid
     for i in range(1, rows):
         for j in range(1,cols):
             
@@ -66,6 +57,8 @@ def global_alignment(seq1, seq2, scoring_function):
             grid[i][j]= max(diagonal_score, vertical_score, horizontal_score)
         
 
+    # bottom right value - compare to diagonal, horizonal, vertical scores to traceback - repeat
+    # stores all possible alignment paths when there is a score tie
     all_alignments = [(rows - 1, cols - 1, "", "")]
     completed_aligns= []
 
@@ -103,8 +96,8 @@ def global_alignment(seq1, seq2, scoring_function):
     
         all_alignments = new_align
 
+    # calculate score for each alignment, combine into one tuple
     total_score = 0
-
     all_detail_align = []
 
     for aligned_seq1, aligned_seq2 in completed_aligns:
@@ -119,10 +112,8 @@ def global_alignment(seq1, seq2, scoring_function):
 
         all_detail_align.append((aligned_seq1, aligned_seq2, total_score))
     
-
-
     return all_detail_align
-    # raise NotImplementedError()
+
 
 
 def local_alignment(seq1, seq2, scoring_function):
