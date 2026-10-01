@@ -29,11 +29,40 @@ def global_alignment(seq1, seq2, scoring_function):
 
     
     """
+    rows = (len(seq2)+1)
+    cols = (len(seq1)+1)
+  
 
-    rows = (len(seq1)+1)
-    cols = (len(seq2)+1)
+    gap_pen = 8
+    
+    """
+    make empty 0 grid 
+    """
 
     grid = [[0 for _ in range(cols)] for _ in range(rows)]
+
+    """
+    gap penalty for 1st row and col
+    """
+    for i in range(1,rows):
+        grid[i][0] = grid[i-1][0] - gap_pen
+        
+    for i in range(1,cols):
+        grid[0][i] = grid[0][i-1] - gap_pen
+
+
+    for i in range(1, rows):
+        for j in range(1,cols):
+            
+            diagonal_score = grid[i-1][j-1] + scoring_function(seq2[i-1], seq1[j-1])
+
+
+            vertical_score = grid[i][j-1] - gap_pen
+
+            horizontal_score = grid[i-1][j] - gap_pen
+            
+            grid[i][j]= max(diagonal_score, vertical_score, horizontal_score)
+        
 
     for row in grid:
         print(row)
