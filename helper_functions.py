@@ -27,8 +27,17 @@ def global_alignment(seq1, seq2, scoring_function):
 
     Other alignments are not possible.
 
+    
     """
-    raise NotImplementedError()
+
+    rows = (len(seq1)+1)
+    cols = (len(seq2)+1)
+
+    grid = [[0 for _ in range(cols)] for _ in range(rows)]
+
+    for row in grid:
+        print(row)
+    # raise NotImplementedError()
 
 
 def local_alignment(seq1, seq2, scoring_function):
