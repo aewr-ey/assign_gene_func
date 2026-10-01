@@ -66,50 +66,62 @@ def global_alignment(seq1, seq2, scoring_function):
             grid[i][j]= max(diagonal_score, vertical_score, horizontal_score)
         
 
-    traceback = grid[rows-1][cols-1]
+    all_alignments = [(rows - 1, cols - 1, "", "")]
+    completed_aligns= []
 
     aligned_seq1 = ""
     aligned_seq2 = ""
 
-    i = rows-1
-    j = cols-1
+    while all_alignments:
 
-    while i > 0 or j > 0:
-        diagonal_traceback = grid[i-1][j-1] + scoring_function(seq2[i-1], seq1[j-1])
-        horizontal_traceback = grid[i][j-1] - gap_pen
-        vertical_traceback = grid[i-1][j] - gap_pen
-
-        if diagonal_traceback == grid[i][j]:
-            aligned_seq1 += seq1[j-1]
-            aligned_seq2 += seq2[i-1]
-            i = i - 1
-            j = j - 1
-        elif horizontal_traceback == grid[i][j]:
-            aligned_seq1 += seq1[j-1]
-            aligned_seq2 += '-'
-            j = j - 1
-        elif vertical_traceback == grid[i][j]:
-            aligned_seq1 += '-'
-            aligned_seq2 += seq2[i-1]
-            i = i - 1
-
-
-    aligned_seq1 = aligned_seq1[::-1]
-    aligned_seq2 = aligned_seq2[::-1]
-
+        new_align=[]
+        for i, j, aligned_seq1, aligned_seq2 in all_alignments:
+        
+            if i == 0 and j == 0:
+                completed_aligns.append((aligned_seq1[::-1], aligned_seq2[::-1]))
+                continue
+            
+    
+            if i > 0 and j > 0:
+                diagonal_traceback = grid[i-1][j-1] + scoring_function(seq2[i-1], seq1[j-1])
+                
+                if diagonal_traceback == grid[i][j]:
+                    new_align.append((i-1, j-1, aligned_seq1 + seq1[j-1], aligned_seq2 + seq2[i-1]))
+            
+            if j > 0: 
+                horizontal_traceback = grid[i][j-1] - gap_pen
+                
+                if horizontal_traceback == grid[i][j]:
+                    new_align.append((i, j-1, aligned_seq1 + seq1[j-1], aligned_seq2 + '-'))
+             
+            
+            if i > 0:
+                vertical_traceback = grid[i-1][j] - gap_pen
+                
+                if vertical_traceback == grid[i][j]:
+                    new_align.append((i-1, j, aligned_seq1 + '-', aligned_seq2 + seq2[i-1]))
+    
+        all_alignments = new_align
 
     total_score = 0
-    for i in range(len(aligned_seq1)):
-            if aligned_seq1[i] == aligned_seq2[i]:
-                total_score += 1.0
-            elif aligned_seq1[i] == '-' or aligned_seq2[i] == '-':
-                total_score -= gap_pen
 
-            elif aligned_seq1[i] != aligned_seq2[i]:
-                total_score -= gap_pen
+    all_detail_align = []
+
+    for aligned_seq1, aligned_seq2 in completed_aligns:
+        for i in range(len(aligned_seq1)):
+                if aligned_seq1[i] == aligned_seq2[i]:
+                    total_score += 1.0
+                elif aligned_seq1[i] == '-' or aligned_seq2[i] == '-':
+                    total_score -= gap_pen
+        
+                elif aligned_seq1[i] != aligned_seq2[i]:
+                    total_score -= gap_pen
+
+        all_detail_align.append((aligned_seq1, aligned_seq2, total_score))
     
-           
-    return aligned_seq1, aligned_seq2, total_score
+
+
+    return all_detail_align
     # raise NotImplementedError()
 
 
