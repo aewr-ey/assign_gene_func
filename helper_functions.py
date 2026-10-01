@@ -33,7 +33,7 @@ def global_alignment(seq1, seq2, scoring_function):
     cols = (len(seq1)+1)
   
 
-    gap_pen = 8
+    gap_pen = 1
     
     """
     make empty 0 grid 
@@ -50,12 +50,14 @@ def global_alignment(seq1, seq2, scoring_function):
     for i in range(1,cols):
         grid[0][i] = grid[0][i-1] - gap_pen
 
+    """
+    fill in grid
+    """
 
     for i in range(1, rows):
         for j in range(1,cols):
             
             diagonal_score = grid[i-1][j-1] + scoring_function(seq2[i-1], seq1[j-1])
-
 
             vertical_score = grid[i][j-1] - gap_pen
 
@@ -64,8 +66,50 @@ def global_alignment(seq1, seq2, scoring_function):
             grid[i][j]= max(diagonal_score, vertical_score, horizontal_score)
         
 
-    for row in grid:
-        print(row)
+    traceback = grid[rows-1][cols-1]
+
+    aligned_seq1 = ""
+    aligned_seq2 = ""
+
+    i = rows-1
+    j = cols-1
+
+    while i > 0 or j > 0:
+        diagonal_traceback = grid[i-1][j-1] + scoring_function(seq2[i-1], seq1[j-1])
+        horizontal_traceback = grid[i][j-1] - gap_pen
+        vertical_traceback = grid[i-1][j] - gap_pen
+
+        if diagonal_traceback == grid[i][j]:
+            aligned_seq1 += seq1[j-1]
+            aligned_seq2 += seq2[i-1]
+            i = i - 1
+            j = j - 1
+        elif horizontal_traceback == grid[i][j]:
+            aligned_seq1 += seq1[j-1]
+            aligned_seq2 += '-'
+            j = j - 1
+        elif vertical_traceback == grid[i][j]:
+            aligned_seq1 += '-'
+            aligned_seq2 += seq2[i-1]
+            i = i - 1
+
+
+    aligned_seq1 = aligned_seq1[::-1]
+    aligned_seq2 = aligned_seq2[::-1]
+
+
+    total_score = 0
+    for i in range(len(aligned_seq1)):
+            if aligned_seq1[i] == aligned_seq2[i]:
+                total_score += 1.0
+            elif aligned_seq1[i] == '-' or aligned_seq2[i] == '-':
+                total_score -= gap_pen
+
+            elif aligned_seq1[i] != aligned_seq2[i]:
+                total_score -= gap_pen
+    
+           
+    return aligned_seq1, aligned_seq2, total_score
     # raise NotImplementedError()
 
 
