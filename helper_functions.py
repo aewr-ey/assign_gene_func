@@ -131,7 +131,7 @@ def local_alignment(seq1, seq2, scoring_function):
     rows = (len(seq2)+1)
     cols = (len(seq1)+1)
   
-    gap_pen = 1
+    gap_pen = 8
     
     # make empty grid + all filled with 0s
     grid = initalise_grid(rows, cols)
