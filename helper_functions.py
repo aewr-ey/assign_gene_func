@@ -111,8 +111,10 @@ def global_alignment(seq1, seq2, scoring_function):
                     total_score -= gap_pen
 
         all_detail_align.append((aligned_seq1, aligned_seq2, total_score))
-    
-    return all_detail_align
+
+    # return highest scored alignment
+    all_detail_align.sort()
+    return all_detail_align[0]
 
 
 
