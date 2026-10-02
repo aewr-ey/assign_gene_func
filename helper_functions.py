@@ -1,9 +1,9 @@
+# Makes empty grid of row+1 x col+1 dimensions
 def initalise_grid(rows, cols):
-    # make empty grid 
     grid = [[0 for _ in range(cols)] for _ in range(rows)]
-
     return grid 
 
+# Fills in grid based on match, mismatch or gap of both sequences
 def score_grid (grid, rows, cols, scoring_function, seq2, seq1,  gap_pen, local):
     for i in range(1, rows):
         for j in range(1,cols):
@@ -21,7 +21,8 @@ def score_grid (grid, rows, cols, scoring_function, seq2, seq1,  gap_pen, local)
                     grid[i][j] = 0
             
     return grid
-
+    
+# Calculates what direction current value is from, updates current position to previous position
 def traceback_logic (i, j, scoring_function, seq1, seq2, gap_pen, grid, aligned_seq1, aligned_seq2):
     diagonal_traceback = grid[i-1][j-1] + scoring_function(seq2[i-1], seq1[j-1])
     horizontal_traceback = grid[i][j-1] - gap_pen
@@ -42,7 +43,7 @@ def traceback_logic (i, j, scoring_function, seq1, seq2, gap_pen, grid, aligned_
         i = i - 1
     return i, j, aligned_seq1, aligned_seq2
 
-
+# Traceback logic for global alignment - tracebacks from the bottom right value
 def traceback_global (rows, cols, grid, scoring_function, seq2, seq1, gap_pen):
     aligned_seq1 = ""
     aligned_seq2 = ""
@@ -58,6 +59,7 @@ def traceback_global (rows, cols, grid, scoring_function, seq2, seq1, gap_pen):
     return aligned_seq1, aligned_seq2
 
 
+# Traceback logic for local alignment - tracebacks from the largest value in grid
 def traceback_local (rows, cols, grid, scoring_function, seq2, seq1, gap_pen):
     aligned_seq1 = ""
     aligned_seq2 = ""
@@ -83,44 +85,27 @@ def traceback_local (rows, cols, grid, scoring_function, seq2, seq1, gap_pen):
     return aligned_seq1, aligned_seq2
 
 
+# Calculates the score of the alignment, applies gap penalty
+def alignment_scoring (aligned_seq1, aligned_seq2, gap_pen):
+    total_score = 0
+    for i in range(len(aligned_seq1)):
+        if aligned_seq1[i] == aligned_seq2[i]:
+            total_score += 1.0
+        elif aligned_seq1[i] == '-' or aligned_seq2[i] == '-':
+            total_score -= gap_pen
 
+        elif aligned_seq1[i] != aligned_seq2[i]:
+            total_score -= gap_pen
+    return total_score
+    
+           
 def global_alignment(seq1, seq2, scoring_function):
-    """Global sequence alignment using the Needleman–Wunsch algorithm.
-
-    Indels should be denoted with the "-" character.
-
-    Parameters
-    ----------
-    seq1: str
-        First sequence to be aligned.
-    seq2: str
-        Second sequence to be aligned.
-    scoring_function: Callable
-
-    Returns
-    -------
-    str
-        First aligned sequence.
-    str
-        Second aligned sequence.
-    float
-        Final score of the alignment.
-
-    Examples
-    --------
-    >>> global_alignment("abracadabra", "dabarakadara", lambda x, y: [-1, 1][x == y])
-    ('-ab-racadabra', 'dabarakada-ra', 5.0)
-
-    Other alignments are not possible.
-
-    """
     rows = (len(seq2)+1)
     cols = (len(seq1)+1)
   
     gap_pen = 8
     
     # make empty grid + fill first row and col with gap pen
-
     grid = initalise_grid(rows, cols)
 
     for i in range(1,rows):
@@ -129,7 +114,6 @@ def global_alignment(seq1, seq2, scoring_function):
     for i in range(1,cols):
         grid[0][i] = grid[0][i-1] - gap_pen
 
-
     # calculate diagonal, vertical, horizonal scores - take largest - fill entire grid
     grid = score_grid(grid, rows, cols, scoring_function, seq2, seq1, gap_pen, False)
         
@@ -137,51 +121,13 @@ def global_alignment(seq1, seq2, scoring_function):
     # bottom right value - compare to diagonal, horizonal, vertical scores to traceback - repeat
     aligned_seq1, aligned_seq2 = traceback_global(rows, cols, grid, scoring_function, seq2, seq1, gap_pen)
 
-
-    total_score = 0
-    for i in range(len(aligned_seq1)):
-            if aligned_seq1[i] == aligned_seq2[i]:
-                total_score += 1.0
-            elif aligned_seq1[i] == '-' or aligned_seq2[i] == '-':
-                total_score -= gap_pen
-
-            elif aligned_seq1[i] != aligned_seq2[i]:
-                total_score -= gap_pen
-    
+    # scoring for alignment
+    total_score = alignment_scoring (aligned_seq1, aligned_seq2, gap_pen)  
            
     return aligned_seq1, aligned_seq2, total_score
 
 
 def local_alignment(seq1, seq2, scoring_function):
-    """Local sequence alignment using the Smith-Waterman algorithm.
-
-    Indels should be denoted with the "-" character.
-
-    Parameters
-    ----------
-    seq1: str
-        First sequence to be aligned.
-    seq2: str
-        Second sequence to be aligned.
-    scoring_function: Callable
-
-    Returns
-    -------
-    str
-        First aligned sequence.
-    str
-        Second aligned sequence.
-    float
-        Final score of the alignment.
-
-    Examples
-    --------
-    >>> local_alignment("pending itch", "unending glitch", lambda x, y: [-1, 1][x == y])
-    ('ending --itch', 'ending glitch', 9.0)
-
-    Other alignments are not possible.
-
-    """
     rows = (len(seq2)+1)
     cols = (len(seq1)+1)
   
@@ -196,20 +142,9 @@ def local_alignment(seq1, seq2, scoring_function):
     aligned_seq1, aligned_seq2 = traceback_local (rows, cols, grid, scoring_function, seq2, seq1, gap_pen)
 
     
-    total_score = 0
-    for i in range(len(aligned_seq1)):
-            if aligned_seq1[i] == aligned_seq2[i]:
-                total_score += 1.0
-            elif aligned_seq1[i] == '-' or aligned_seq2[i] == '-':
-                total_score -= gap_pen
-
-            elif aligned_seq1[i] != aligned_seq2[i]:
-                total_score -= gap_pen
-    
+    total_score = alignment_scoring (aligned_seq1, aligned_seq2, gap_pen)  
            
     return aligned_seq1, aligned_seq2, total_score
-
-    # print(grid)
 
 
 
